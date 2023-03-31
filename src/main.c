@@ -1,3 +1,4 @@
+#include "led.h"
 #include "stm32.h"
 #include "vector_table.h"
 
@@ -50,24 +51,17 @@ static void start_vsync_timer(void) {
     TIM2->CR1 |= TIM_CR1_CEN;
 }
 
-static bool led_state;
 void tim2_handler(void) { 
     TIM2->SR &= ~(TIM_SR_UIF);
 
-    GPIOC->BSRR = led_state ? GPIO_BSRR_SET(13) : GPIO_BSRR_RST(13);
-    led_state ^= 1;
+    led_toggle();
 }
 
 void main() {
 
     set_sysclk_to_72MHz();
 
-    // Enable port C clock gate.
-    RCC->APB2ENR |= RCC_APB2ENR_IOPCEN;
-
-    // configure GPIO C pin 13 as output.
-    GPIOC->CRH &= ~(GPIO_CRH_CNF(13) | GPIO_CRH_MODE(13));
-    GPIOC->CRH |= (GPIO_CRH_CNF_OUTPUT_PUSH_PULL(13) | GPIO_CRH_MODE_50MHz(13));
+    led_init();
 
     start_vsync_timer();
 

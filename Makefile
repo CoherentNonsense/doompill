@@ -34,7 +34,7 @@ LFLAGS += -lgcc
 LFLAGS += -T$(LSCRIPT)
 
 AS_SRC   = src/boot.S
-C_SRC    = src/vector_table.c src/main.c
+C_SRC    = src/vector_table.c src/main.c src/led.c
 
 OBJS += $(AS_SRC:.S=.o)
 OBJS += $(C_SRC:.c=.o)
