@@ -44,18 +44,18 @@ static void start_vsync_timer(void) {
     NVIC->IPR[TIM2_IRQn] = 0;
 
     // enable interupt
-	//NVIC->ISER[((u32)(TIM2_IRQn) >> 5)] = (1 << ((u32)(TIM2_IRQn) & 0x1f));
-	NVIC->ISER[0] |= (1 << TIM2_IRQn);
+	NVIC->ISER[((u32)(TIM2_IRQn) >> 5)] = (1 << ((u32)(TIM2_IRQn) & 0b11111));
 
     // start timer
     TIM2->CR1 |= TIM_CR1_CEN;
 }
 
-volatile bool led_state;
-void tim2_handler(void) {
+static bool led_state;
+void tim2_handler(void) { 
+    TIM2->SR &= ~(TIM_SR_UIF);
+
     GPIOC->BSRR = led_state ? GPIO_BSRR_SET(13) : GPIO_BSRR_RST(13);
     led_state ^= 1;
-    TIM2->SR = ~(TIM_SR_UIF);
 }
 
 void main() {
@@ -67,7 +67,7 @@ void main() {
 
     // configure GPIO C pin 13 as output.
     GPIOC->CRH &= ~(GPIO_CRH_CNF(13) | GPIO_CRH_MODE(13));
-    GPIOC->CRH |= (GPIO_CRH_CNF_OUTPUT_PUSH_PULL(13) | GPIO_CRH_MODE(13));
+    GPIOC->CRH |= (GPIO_CRH_CNF_OUTPUT_PUSH_PULL(13) | GPIO_CRH_MODE_50MHz(13));
 
     start_vsync_timer();
 

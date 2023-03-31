@@ -43,6 +43,7 @@ SECTIONS
     {
         . = ALIGN(4);
         _sdata = .;
+        *(.ramtext .ramtext*)
         *(.data)
         *(.data*)
         . = ALIGN(4);

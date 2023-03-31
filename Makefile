@@ -11,14 +11,14 @@ OD = arm-none-eabi-objdump
 OS = arm-none-eabi-size
 
 ASFLAGS += -c
-ASFLAGS += -O0
+ASFLAGS += -Os
 ASFLAGS += -mcpu=$(MCU_SPEC)
 ASFLAGS += -mthumb
 ASFLAGS += -Wall
 
 CFLAGS += -mcpu=$(MCU_SPEC)
 CFLAGS += -mthumb
-CFLAGS += -O0
+CFLAGS += -Os
 CFLAGS += -Wall
 CFLAGS += -g
 CFLAGS += -ffreestanding

@@ -3,7 +3,7 @@
 typedef void (*InterruptVectorFn)(void);
 
 __attribute__ ((section(".vector_table")))
-const InterruptVectorFn vector_table[] = {
+const volatile InterruptVectorFn vector_table[] = {
     (void (*)(void))((u32)&_estack),    // 0x000 sp
     reset_handler,                      // 0x004 Reset
     0,                                  // 0x008 Non maskable interrupt
@@ -33,7 +33,7 @@ const InterruptVectorFn vector_table[] = {
     0,                                  // 0x068 EXTI Line4                     
     0,                                  // 0x06C DMA1_Ch1                       
     0,                                  // 0x070 DMA1_Ch2                       
-    0,                                  // 0x074 DMA1_Ch3                       
+    dma1_channel3_handler,              // 0x074 DMA1_Ch3
     0,                                  // 0x078 DMA1_Ch4                       
     0,                                  // 0x07C DMA1_Ch5                       
     0,                                  // 0x080 DMA1_Ch6                       
@@ -42,12 +42,12 @@ const InterruptVectorFn vector_table[] = {
     0,                                  // 0x08C CAN1_TX                        
     0,                                  // 0x090 CAN1_RX0                       
     0,                                  // 0x094 CAN1_RX1                       
-    0,                                  // 0x098 CAN1_SCE                       
-    0,                                  // 0x09C EXTI Lines 9:5                 
-    0,                                  // 0x0A0 TIM1 Break                     
-    0,                                  // 0x0A4 TIM1 Update                    
-    0,                                  // 0x0A8 TIM1 Trigger and Communication 
-    0,                                  // 0x0AC TIM1 Capture Compare           
+    0,                                  // 0x098 CAN1_SCE 
+    0,                                  // 0x09C EXTI Lines 9:5
+    0,                                  // 0x0A0 TIM1 Break
+    0,                                  // 0x0A4 TIM1 Update 
+    0,                                  // 0x0A8 TIM1 Trigger and Communication
+    tim1_cc_handler,                    // 0x0AC TIM1 Capture Compare
     tim2_handler,                       // 0x0B0 TIM2                           
     0,                                  // 0x0B4 TIM3                           
     0,                                  // 0x0B8 TIM4                           

@@ -114,7 +114,7 @@ enum IRQn {
     OTG_FS_IRQn                 = 67      // USB OTG FS global Interrupt
 };
 
-#define NVIC_BASE (0xe000e100)
+#define NVIC_BASE (0xe000E100)
 #define NVIC ((struct NVIC_type*)NVIC_BASE)
 
 
@@ -190,8 +190,71 @@ struct RCC_type {
 #define RCC_APB1ENR_TIM2EN (0b1 << 0)
 
 // RCC::APB2 (peripheral clock enable register)
+#define RCC_APB1ENR_TIM1EN (0b1 << 11)
+#define RCC_APB2ENR_SPI1EN (0b1 << 4)
 #define RCC_APB2ENR_IOPCEN (0b1 << 4)
+#define RCC_APB2ENR_IOPBEN (0b1 << 3)
+#define RCC_APB2ENR_IOPAEN (0b1 << 2)
 
+
+
+// ============================ //
+//  DMA (Direct Memory Access)  //
+// ============================ //
+struct DMA_type {
+    __reg ISR;      // 0x00
+    __reg IFCR;     // 0x04
+
+    __reg CCR1;     // 0x08
+    __reg CNDTR1;   // 0x0c
+    __reg CPAR1;    // 0x10
+    __reg CMAR1;    // 0x14
+    
+    __reg RES0;
+
+    __reg CCR2;     // 0x1c
+    __reg CNDTR2;   // 0x20
+    __reg CPAR2;    // 0x24
+    __reg CMAR2;    // 0x28
+
+    __reg RES1;
+
+    __reg CCR3;     // 0x30
+    __reg CNDTR3;   // 0x34
+    __reg CPAR3;    // 0x38
+    __reg CMAR3;    // 0x3c
+    
+    __reg RES2;
+};
+
+#define DMA1_BASE (0x40020000)
+#define DMA1 ((struct DMA_type*)DMA1_BASE)
+
+// DMA::IFCR (interrupt flag clear register)
+#define DMA_IFCR_CTCIF3 (0b1 << 9)
+
+// DMA::CCRx (channel x configuration register)
+#define DMA_CCR_MINC (0b1 << 7)
+#define DMA_CCR_DIR_FROM_MEMORY (0b1 << 4)
+
+// SPI (serial peripheral interface)
+struct SPI {
+    __reg CR1;
+    __reg CR2;
+    __reg SR;
+    __reg DR;
+};
+
+#define SPI1_BASE (0x40013000)
+#define SPI1 ((struct SPI*)SPI1_BASE)
+
+// SPI::CR1 (control register 1)
+#define SPI_CR1_SPE (0b1 << 6)
+#define SPI_CR1_BR_DIV_2 (0b000 << 3)
+#define SPI_CR1_MSTR (0b1 << 2)
+
+// SPI::CR2 (control register 2)
+#define SPI_CR2_RXDMAEN (0b1 << 0)
 
 
 // ====================================== //
@@ -205,20 +268,32 @@ struct GPIO_type {
     __reg BSRR;   // 0x10
 };
 
+#define GPIOA_BASE (0x40010800)
 #define GPIOC_BASE (0x40011000)
+#define GPIOA ((struct GPIO_type*)GPIOA_BASE)
 #define GPIOC ((struct GPIO_type*)GPIOC_BASE)
 
 // GPIO::CRL (control register low)
-#define GPIO_CRL_CNF(PORT) (0b11 << (4 * PORT))
-#define GPIO_CRL_CNF_OUTPUT_PUSH_PULL(PORT) (0b00 << (4 * PORT))
-#define GPIO_CRL_MODE(PORT) (0b11 << 2 << (4 * PORT))
-#define GPIO_CRL_MODE_50MHZ(PORT) (0b11 << 2 << (4 * PORT))
+#define GPIO_CRL_CNF(PORT) (0b11 << 2<< (4 * PORT))
+#define GPIO_CRL_CNF_OUTPUT_PUSH_PULL(PORT) (0b00 << 2 << (4 * PORT))
+#define GPIO_CRL_CNF_ALT_PUSH_PULL(PORT) (0b10 << 2 << (4 * (PORT)))
+
+#define GPIO_CRL_MODE(PORT) (0b11 << (4 * PORT))
+#define GPIO_CRL_MODE_2MHz(PORT) (0b10 << (4 * PORT))
+#define GPIO_CRL_MODE_50MHz(PORT) (0b11 << (4 * PORT))
+
+#define GPIO_CRL(PORT) (0b1111 << (4 * PORT))
 
 // GPIO::CRH (control register high)
 #define GPIO_CRH_CNF(PORT) (0b11 << 2 << (4 * (PORT - 8)))
 #define GPIO_CRH_CNF_OUTPUT_PUSH_PULL(PORT) (0b00 << 2 << (4 * (PORT - 8)))
+#define GPIO_CRH_CNF_ALT_PUSH_PULL(PORT) (0b10 << 2 << (4 * (PORT - 8)))
+
 #define GPIO_CRH_MODE(PORT) (0b11 << (4 * (PORT - 8)))
-#define GPIO_CRH_MODE_50MHZ(PORT) (0b11 << (4 * (PORT - 8)))
+#define GPIO_CRH_MODE_2MHz(PORT) (0b10 << (4 * (PORT - 8)))
+#define GPIO_CRH_MODE_50MHz(PORT) (0b11 << (4 * (PORT - 8)))
+
+#define GPIO_CRH(PORT) (0b1111 << (4 * (PORT - 8)))
 
 // GPIO::BSRR (bit set/reset register)
 #define GPIO_BSRR_SET(PIN) (0b1 << PIN)
@@ -242,18 +317,44 @@ struct TIM_type {
     __reg CNT;      // 0x24
     __reg PSC;      // 0x28
     __reg ARR;      // 0x2c
+    __reg RCR;      // 0x30
+    __reg CCR1;     // 0x34
+    __reg CCR2;     // 0x38
+    __reg CCR3;     // 0x3c
+    __reg CCR4;     // 0x40
+    __reg BDTR;     // 0x44
+    __reg DCR;      // 0x48
+    __reg DMAR;     // 0x4c
 };
 
+#define TIM1_BASE (0x40012C00)
 #define TIM2_BASE (0x40000000)
+#define TIM1 ((struct TIM_type*)TIM2_BASE)
 #define TIM2 ((struct TIM_type*)TIM2_BASE)
 
 // TIM::CR1 (control register 1)
 #define TIM_CR1_CEN (0b1 << 0)
 
+// TIM::SMCR (slave mode control register)
+#define TIM_SMCR_MSM (0b1 << 7)
+
 // TIM::DIER (DMA/interrupt enable register)
+#define TIM_DIER_CC2IE (0b1 << 2)
 #define TIM_DIER_UIE (0b1 << 0)
 
 // TIM::SR (status register)
+#define TIM_SR_CC2IF (0b1 << 2)
 #define TIM_SR_UIF (0b1 << 0)
+
+// TIM::CCER (capture/compare 1 enable register)
+#define TIM_CCER_CC1E (0b1 << 0)
+
+// TIM::CCMR1 (capture/compare mode register)
+#define TIM_CCMR1_OCM1 (0b111 << 4)
+#define TIM_CCMR1_OCM1_PWM1 (0b110 << 4)
+#define TIM_CCMR1_OCM1_PWM2 (0b111 << 4)
+
+// TIM::BDTR (break and deadtime register)
+#define TIM_BDTR_MOE (0b1 << 15)
 
 #endif // !STM32_H
