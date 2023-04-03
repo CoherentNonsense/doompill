@@ -165,9 +165,11 @@ struct RCC_type {
 // RCC::CFGR (configure register)
 #define RCC_CFGR_PLLMUL (0b1111 << 18)
 #define RCC_CFGR_PLLMUL_2  (0b0000 << 18)
+#define RCC_CFGR_PLLMUL_5  (0b0011 << 18)
 #define RCC_CFGR_PLLMUL_8  (0b0110 << 18)
 #define RCC_CFGR_PLLMUL_9  (0b0111 << 18)
 #define RCC_CFGR_PLLMUL_12 (0b1010 << 18)
+#define RCC_CFGR_PLLMUL_15 (0b1101 << 18)
 #define RCC_CFGR_PLLMUL_16 (0b1111 << 18)
 
 #define RCC_CFGR_PLLXTPRE (0b1 << 17)
@@ -186,15 +188,19 @@ struct RCC_type {
 #define RCC_CFGR_SW_HSE (0b01 << 0)
 #define RCC_CFGR_SW_PLL (0b10 << 0)
 
-// RCC::APB1 (peripheral clock enable register)
+// RCC:AHBENR (AHB peripheral clock enable register)
+#define RCC_AHBENR_DMA1 (0b1 << 0)
+
+// RCC::APB1 (APB1 peripheral clock enable register)
 #define RCC_APB1ENR_TIM2EN (0b1 << 0)
 
-// RCC::APB2 (peripheral clock enable register)
-#define RCC_APB1ENR_TIM1EN (0b1 << 11)
-#define RCC_APB2ENR_SPI1EN (0b1 << 4)
+// RCC::APB2 (APB2 peripheral clock enable register)
+#define RCC_APB2ENR_SPI1EN (0b1 << 12)
+#define RCC_APB2ENR_TIM1EN (0b1 << 11)
 #define RCC_APB2ENR_IOPCEN (0b1 << 4)
 #define RCC_APB2ENR_IOPBEN (0b1 << 3)
 #define RCC_APB2ENR_IOPAEN (0b1 << 2)
+#define RCC_APB2ENR_AFIOEN (0b1 << 0)
 
 
 
@@ -232,10 +238,16 @@ struct DMA_type {
 
 // DMA::IFCR (interrupt flag clear register)
 #define DMA_IFCR_CTCIF3 (0b1 << 9)
+#define DMA_IFCR_CGIF3  (0b1 << 8)
 
 // DMA::CCRx (channel x configuration register)
+#define DMA_CCR_PL (0b11 << 12)
+#define DMA_CCR_PL_HIGH (0b10 << 12)
+#define DMA_CCR_PL_VERY_HIGH (0b11 << 12)
 #define DMA_CCR_MINC (0b1 << 7)
 #define DMA_CCR_DIR_FROM_MEMORY (0b1 << 4)
+#define DMA_CCR_TCIE (0b1 << 1)
+#define DMA_CCR_EN (0b1 << 0)
 
 // SPI (serial peripheral interface)
 struct SPI {
@@ -249,11 +261,19 @@ struct SPI {
 #define SPI1 ((struct SPI*)SPI1_BASE)
 
 // SPI::CR1 (control register 1)
+#define SPI_CR1_BIDIMODE (0b1 << 15)
+#define SPI_CR1_BIDIOE (0b1 << 14)
 #define SPI_CR1_SPE (0b1 << 6)
+#define SPI_CR1_BR (0b111 << 3)
 #define SPI_CR1_BR_DIV_2 (0b000 << 3)
+#define SPI_CR1_BR_DIV_4 (0b001 << 3)
+#define SPI_CR1_BR_DIV_8 (0b010 << 3)
+#define SPI_CR1_BR_DIV_256 (0b111 << 3)
 #define SPI_CR1_MSTR (0b1 << 2)
 
 // SPI::CR2 (control register 2)
+#define SPI_CR2_TXEIE (0b1 << 7)
+#define SPI_CR2_TXDMAEN (0b1 << 1)
 #define SPI_CR2_RXDMAEN (0b1 << 0)
 
 
@@ -274,9 +294,9 @@ struct GPIO_type {
 #define GPIOC ((struct GPIO_type*)GPIOC_BASE)
 
 // GPIO::CRL (control register low)
-#define GPIO_CRL_CNF(PORT) (0b11 << 2<< (4 * PORT))
+#define GPIO_CRL_CNF(PORT) (0b11 << 2 << (4 * PORT))
 #define GPIO_CRL_CNF_OUTPUT_PUSH_PULL(PORT) (0b00 << 2 << (4 * PORT))
-#define GPIO_CRL_CNF_ALT_PUSH_PULL(PORT) (0b10 << 2 << (4 * (PORT)))
+#define GPIO_CRL_CNF_ALT_PUSH_PULL(PORT) (0b10 << 2 << (4 * PORT))
 
 #define GPIO_CRL_MODE(PORT) (0b11 << (4 * PORT))
 #define GPIO_CRL_MODE_2MHz(PORT) (0b10 << (4 * PORT))
@@ -329,7 +349,7 @@ struct TIM_type {
 
 #define TIM1_BASE (0x40012C00)
 #define TIM2_BASE (0x40000000)
-#define TIM1 ((struct TIM_type*)TIM2_BASE)
+#define TIM1 ((struct TIM_type*)TIM1_BASE)
 #define TIM2 ((struct TIM_type*)TIM2_BASE)
 
 // TIM::CR1 (control register 1)
@@ -339,14 +359,18 @@ struct TIM_type {
 #define TIM_SMCR_MSM (0b1 << 7)
 
 // TIM::DIER (DMA/interrupt enable register)
+#define TIM_DIER_CC3IE (0b1 << 3)
 #define TIM_DIER_CC2IE (0b1 << 2)
+#define TIM_DIER_CC1IE (0b1 << 1)
 #define TIM_DIER_UIE (0b1 << 0)
 
 // TIM::SR (status register)
 #define TIM_SR_CC2IF (0b1 << 2)
+#define TIM_SR_CC1IF (0b1 << 1)
 #define TIM_SR_UIF (0b1 << 0)
 
 // TIM::CCER (capture/compare 1 enable register)
+#define TIM_CCER_CC1P (0b1 << 1)
 #define TIM_CCER_CC1E (0b1 << 0)
 
 // TIM::CCMR1 (capture/compare mode register)
