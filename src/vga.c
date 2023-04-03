@@ -1,25 +1,25 @@
 // here is a reference for the timing info i will be using
 // (source: http://tinyvga.com/vga-timing/800x600@56Hz)
 //
-// SVGA 800x600 @ 56 Hz
+// SVGA 800x600 @ 60 Hz
 //
 // [horizontal timing]
 // | scanline     | pixels | time (µs) |
 // |-----------------------------------|
-// | visible area | 800px  | 22.222222 |
-// | front porch  | 24px   |  0.666667 |
-// | sync pulse   | 72px   |  2.0      |
-// | back porch   | 128px  |  3.555556 |
-// | whole line   | 1024px | 28.444444 |
+// | visible area | 800px  | 20.0      |
+// | front porch  | 40px   |  1.0      |
+// | sync pulse   | 128px  |  3.2      |
+// | back porch   | 88px   |  2.2      |
+// | whole line   | 1056px | 26.4      |
 //
 // [vertical timing]
 // | scanline     | pixels | time (ms) |
 // |-----------------------------------|
-// | visible area | 600px  | 17.066667 |
-// | front porch  | 1px    |  0.028444 |
-// | sync pulse   | 2px    |  0.056889 |
-// | back porch   | 22px   |  0.625778 |
-// | whole line   | 625px  | 17.777778 |
+// | visible area | 600px  | 15.84     |
+// | front porch  | 1px    |  0.0264   |
+// | sync pulse   | 4px    |  0.1056   |
+// | back porch   | 23px   |  0.6072   |
+// | whole line   | 628px  | 16.5792   |
 //
 // i can't render the full 800x600, so instead, i will render 200x150, where
 // each pixel will be made up of 4x4 physical pixels.
@@ -32,6 +32,7 @@
 #include "types.h"
 
 
+// HACK: temporary buffer to display to a monitor
 static volatile u8 buffer[DISPLAY_WIDTH_BYTES] = {
     0x55, 0x55, 0x55, 0x55, 0x55,
     0x55, 0x55, 0x55, 0x55, 0x55,
@@ -72,28 +73,28 @@ static void init_timers(void) {
     //
     //                             (1*)                  (2*)
     // [-- sync --][-- back porch --][-- display pixels --][-- front porch --]
-    //    2.00µs         3.55µs             22.222µs             0.667µs      
-    //    144 clk        256 clk            1560 clk             48 clk
+    //     3.2µs         2.20µs             20.0µs              1.00µs      
+    //    128 clk        88 clk             800 clk             40 clk
     //
     // [--------------------------- total -----------------------------------]
-    //                             28.44µs
-    //                             2048 clk
+    //                             26.40µs
+    //                             1056 clk
     //
-    // Channel1: used to output HSYNC (when timer is less than 144 clk)
+    // Channel1: used to output HSYNC (when timer is less than 128 clk)
     // ‾‾‾‾‾‾‾‾‾‾‾\___________________________________________________________
     //
-    // Channel2: used to trigger (1*) (when timer is less than 144 + 256 = 400)
+    // Channel2: used to trigger (1*) (when timer is less than 128 + 88 = 216)
     // ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾\_________________________________________
     //
-    // each row will be done 625 times per frame.
+    // each row will be run 628 times per frame.
     //
-    // clock cycles (clk) are calculated based on a 72GHz SYSCLK:
-    // f(x) = 72GHz * (1s / 1,000,000µs) * (x)µs
-    // e.g f(2) = 72GHz * (1s / 1,000,000) * 2µs = 144 clk
+    // clock cycles (clk) are calculated based on a 40GHz system clock:
+    // f(x) = 40GHz * (1s / 1,000,000µs) * (x)µs
+    // e.g f(3.2) = 40GHz * (1s / 1,000,000µs) * 3.2µs = 128 clk
    
     const u32 HORIZONTAL_TOTAL_CLK = 1056;
     const u32 CHANNEL1_PULSE_CLK = 128;
-    const u32 CHANNEL2_PULSE_CLK = 216; // HACK: was 216
+    const u32 CHANNEL2_PULSE_CLK = 216;
 
     // setup TIM1
     TIM1->ARR = HORIZONTAL_TOTAL_CLK;
