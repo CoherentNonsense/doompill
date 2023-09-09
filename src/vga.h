@@ -20,6 +20,9 @@
 
 // the buffer is a DISPLAY_WIDTH * DISPLAY_HEIGHT array of bits where each bit
 // represents a pixel on the screen.
-void vga_init(u8 buffer[DISPLAY_HEIGHT][DISPLAY_WIDTH_BYTES]);
+void vga_init();
+
+// wait until the next frame
+void vga_vsync();
 
 #endif // !VGA_H

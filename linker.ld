@@ -39,13 +39,13 @@ SECTIONS
     } >FLASH
 
     _sidata = .;
-    .data : AT(_sidata)
+    .data : AT(_sidata) ALIGN(4)
     {
         . = ALIGN(4);
         _sdata = .;
-        *(.ramtext .ramtext*)
         *(.data)
         *(.data*)
+        *(.ramtext .ramtext*)
         . = ALIGN(4);
         _edata = .;
     } >RAM

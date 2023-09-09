@@ -36,7 +36,7 @@ struct NVIC_type {
     __reg IABR[3];       // 0x200
     __reg RES4[61];
     __reg8 IPR[21 * 4];  // 0x300
-    __reg RES5[43];
+    __reg RES5[683];
     __reg STIR;          // 0xe00
 };
 

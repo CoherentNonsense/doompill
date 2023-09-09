@@ -28,19 +28,17 @@
 
 #include "led.h"
 #include "stm32.h"
+#include "text.h"
 #include "vector_table.h"
 #include "types.h"
 
 
-// HACK: temporary buffer to display to a monitor
-static volatile u8 buffer[DISPLAY_WIDTH_BYTES] = {
-    0x55, 0x55, 0x55, 0x55, 0x55,
-    0x55, 0x55, 0x55, 0x55, 0x55,
-    0x55, 0x55, 0x55, 0x55, 0x55,
-    0x55, 0x55, 0x55, 0x55, 0x55,
-    0x55, 0x55, 0x55, 0x55, 0x55,
-};
+static u8 buffer[DISPLAY_WIDTH_BYTES];
+
 static u32 current_row;
+
+static bool waiting_for_vsync;
+
 
 // sets the VSYNC pin to high
 static void set_vsync_high(void) {
@@ -92,9 +90,9 @@ static void init_timers(void) {
     // f(x) = 40GHz * (1s / 1,000,000µs) * (x)µs
     // e.g f(3.2) = 40GHz * (1s / 1,000,000µs) * 3.2µs = 128 clk
    
-    const u32 HORIZONTAL_TOTAL_CLK = 1056;
-    const u32 CHANNEL1_PULSE_CLK = 128;
-    const u32 CHANNEL2_PULSE_CLK = 216;
+    const u32 HORIZONTAL_TOTAL_CLK = 2048;
+    const u32 CHANNEL1_PULSE_CLK = 144;
+    const u32 CHANNEL2_PULSE_CLK = 400;
 
     // setup TIM1
     TIM1->ARR = HORIZONTAL_TOTAL_CLK;
@@ -117,30 +115,31 @@ static void init_timers(void) {
 // ============ //
 __attribute__((section(".ramtext")))
 void tim1_cc_handler(void) {
-    TIM1->SR = 0;
-
-    if (current_row < 600) {         // PIXELS START
+    if (current_row < 600) {         // PIXELS START    
         DMA1->IFCR = DMA_IFCR_CTCIF3;
-        DMA1->CMAR3 = (u32)&buffer[0];
+        DMA1->CMAR3 = (u32)buffer;
         DMA1->CCR3 = 0x93;
-    } else if (current_row == 600) {
-    } if (current_row == 601) { // VSYNC START
+
+    } else if (current_row == 601) { // VSYNC START 
+        waiting_for_vsync = false;
         set_vsync_high();
-    } else if (current_row == 605) { // VSYNC END
+ 
+    } else if (current_row == 603) { // VSYNC END
         set_vsync_low();
     }
 
+    TIM1->SR = 0;
     current_row += 1;
-    current_row %= 628;
+    current_row %= 625;
 }
 
-
-// TODO: use a rasterizer and put it here
 __attribute__((section(".ramtext")))
 void dma1_channel3_handler(void) {
     DMA1->CCR3 = 0x92;
     DMA1->IFCR = DMA_IFCR_CTCIF3;
     DMA1->CNDTR3 = DISPLAY_WIDTH_BYTES;
+
+    text_rasterize(buffer, (current_row >> 1) % 8);
 }
 
 
@@ -148,10 +147,7 @@ void dma1_channel3_handler(void) {
 // ============ //
 //  public API  //
 // ============ //
-void vga_init(u8 framebuffer[DISPLAY_HEIGHT][DISPLAY_WIDTH_BYTES]) {
-    // keep reference to framebuffer
-    //buffer = *framebuffer;
-
+void vga_init() {
     // enable port A, TIM1, SPI1
     RCC->APB2ENR |= (
         RCC_APB2ENR_IOPAEN |
@@ -188,19 +184,27 @@ void vga_init(u8 framebuffer[DISPLAY_HEIGHT][DISPLAY_WIDTH_BYTES]) {
     SPI1->CR1 = (
         SPI_CR1_SPE |
         SPI_CR1_MSTR |
-        SPI_CR1_BR_DIV_4
+        SPI_CR1_BR_DIV_8
     );
     SPI1->CR2 = SPI_CR2_TXDMAEN;
 
     init_timers();
 
     // setup interrupts
-    NVIC->IPR[TIM1_CC_IRQn] = 0b0000;
+    NVIC->IPR[TIM1_CC_IRQn] = 0 << 4;
     NVIC->ISER[(u32)(TIM1_CC_IRQn >> 5)] = (1 << ((u32)(TIM1_CC_IRQn) & 0b11111));
 
-    NVIC->IPR[DMA1_Channel3_IRQn] = 0b0001;
+    NVIC->IPR[DMA1_Channel3_IRQn] = 15 << 4;
     NVIC->ISER[(u32)(DMA1_Channel3_IRQn >> 5)] = (1 << ((u32)(DMA1_Channel3_IRQn) & 0b11111));
 
     // start timer
     TIM1->CR1 = TIM_CR1_CEN;
+}
+
+
+void vga_vsync() {
+    waiting_for_vsync = true;
+    while (waiting_for_vsync) {
+        __asm__("wfi");
+    }
 }

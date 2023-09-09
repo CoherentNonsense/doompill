@@ -34,7 +34,7 @@ LFLAGS += -lgcc
 LFLAGS += -T$(LSCRIPT)
 
 AS_SRC   = src/boot.S
-C_SRC    = src/vector_table.c src/main.c src/led.c src/vga.c
+C_SRC    = src/vector_table.c src/main.c src/led.c src/vga.c src/text.c src/types.c src/map.c
 
 OBJS += $(AS_SRC:.S=.o)
 OBJS += $(C_SRC:.c=.o)
@@ -47,6 +47,9 @@ all: $(TARGET).bin
 
 %.o: %.c
 	$(CC) -c $(CFLAGS) $(INCLUDE) $< -o $@
+
+doomsdl: editor/main.c src/renderer.c src/doom.c src/types.c src/map.c
+	gcc $^ -o $@ -lsdl2 -DDOOMSDL
 
 $(TARGET).elf: $(OBJS)
 	$(CC) $^ $(LFLAGS) -o $@
