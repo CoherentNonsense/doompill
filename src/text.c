@@ -1,6 +1,5 @@
 #include "text.h"
 #include "led.h"
-#include "renderer.h"
 
 static i32 text_length;
 static char text_buffer[50];
