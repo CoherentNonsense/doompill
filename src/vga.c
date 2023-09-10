@@ -139,7 +139,7 @@ void dma1_channel3_handler(void) {
     DMA1->IFCR = DMA_IFCR_CTCIF3;
     DMA1->CNDTR3 = DISPLAY_WIDTH_BYTES;
 
-    text_rasterize(buffer, (current_row >> 1) % 8);
+    text_rasterize(buffer, (current_row >> 0) % 8);
 }
 
 
@@ -180,11 +180,11 @@ void vga_init() {
     DMA1->CNDTR3 = DISPLAY_WIDTH_BYTES;
 
     // setup SPI1
-    // we will send pixel data at 40 / 4 = 10Mhz
+    // we will send pixel data at 40 / 2 = 10Mhz
     SPI1->CR1 = (
         SPI_CR1_SPE |
         SPI_CR1_MSTR |
-        SPI_CR1_BR_DIV_8
+        SPI_CR1_BR_DIV_2
     );
     SPI1->CR2 = SPI_CR2_TXDMAEN;
 

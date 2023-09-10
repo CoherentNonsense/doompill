@@ -27,7 +27,7 @@ static void set_sysclk_to_72MHz(void) {
     RCC->CFGR |= RCC_CFGR_SW_PLL;
     while (!(RCC->CFGR & RCC_CFGR_SWS_PLL)) {}
 }
-
+/*
 static void set_sysclk_to_60MHz(void) {
     // turn on HSE
     RCC->CR |= (RCC_CR_HSEON);
@@ -73,6 +73,9 @@ static void set_sysclk_to_40MHz(void) {
     RCC->CFGR |= RCC_CFGR_SW_PLL;
     while (!(RCC->CFGR & RCC_CFGR_SWS_PLL)) {}
 }
+*/
+
+static char text[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz 0123456789 !@#$%^&*()_+-=[]{}\\|,./<>?";
 
 void main() {
 
@@ -82,7 +85,6 @@ void main() {
 
     vga_init();
 
-    char text[] = "HELLO WORLD";
     text_print(text, sizeof(text) - 1);
 
     while (true) {

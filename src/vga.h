@@ -14,8 +14,8 @@
 
 #include "types.h"
 
-#define DISPLAY_WIDTH (200)
-#define DISPLAY_HEIGHT (150)
+#define DISPLAY_WIDTH (800)
+#define DISPLAY_HEIGHT (600)
 #define DISPLAY_WIDTH_BYTES (DISPLAY_WIDTH / 8)
 
 // the buffer is a DISPLAY_WIDTH * DISPLAY_HEIGHT array of bits where each bit
