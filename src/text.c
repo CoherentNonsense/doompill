@@ -19,7 +19,7 @@ void text_printi(i32 n) {
     for (u32 val = n; val > 0 && text_length < 20; val /= 10, text_length++);
 
     for (u32 val = n, i = 0; val > 0; val /= 10, i++) {
-        text_buffer[text_length - i - 1] = (val % 10) + 'Z' + 1;
+        text_buffer[text_length - i - 1] = (val % 10) + '0' - ' ';
     }
 }
 

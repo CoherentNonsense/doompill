@@ -75,7 +75,7 @@ static void set_sysclk_to_40MHz(void) {
 }
 */
 
-static char text[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz 0123456789 !@#$%^&*()_+-=[]{}\\|,./<>?";
+static char text[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 !@#$%^&*()_+-=[]{}\\|,./<>?";
 
 void main() {
 

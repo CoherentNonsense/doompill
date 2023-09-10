@@ -1,28 +1,25 @@
 // here is a reference for the timing info i will be using
 // (source: http://tinyvga.com/vga-timing/800x600@56Hz)
 //
-// SVGA 800x600 @ 60 Hz
+// SVGA 800x600 @ 56 Hz
 //
 // [horizontal timing]
 // | scanline     | pixels | time (µs) |
 // |-----------------------------------|
-// | visible area | 800px  | 20.0      |
-// | front porch  | 40px   |  1.0      |
-// | sync pulse   | 128px  |  3.2      |
-// | back porch   | 88px   |  2.2      |
-// | whole line   | 1056px | 26.4      |
+// | visible area | 800px  | 22.222222 |
+// | front porch  | 24px   |  0.666667 |
+// | sync pulse   | 72px   |  2.0      |
+// | back porch   | 128px  |  3.555556 |
+// | whole line   | 1024px | 28.444444 |
 //
 // [vertical timing]
 // | scanline     | pixels | time (ms) |
 // |-----------------------------------|
-// | visible area | 600px  | 15.84     |
-// | front porch  | 1px    |  0.0264   |
-// | sync pulse   | 4px    |  0.1056   |
-// | back porch   | 23px   |  0.6072   |
-// | whole line   | 628px  | 16.5792   |
-//
-// i can't render the full 800x600, so instead, i will render 200x150, where
-// each pixel will be made up of 4x4 physical pixels.
+// | visible area | 600px  | 17.066667 |
+// | front porch  | 1px    |  0.028444 |
+// | sync pulse   | 2px    |  0.056889 |
+// | back porch   | 22px   |  0.625778 |
+// | whole line   | 625px  | 17.777778 |
 
 #include "vga.h"
 
@@ -71,24 +68,24 @@ static void init_timers(void) {
     //
     //                             (1*)                  (2*)
     // [-- sync --][-- back porch --][-- display pixels --][-- front porch --]
-    //     3.2µs         2.20µs             20.0µs              1.00µs      
-    //    128 clk        88 clk             800 clk             40 clk
+    //     2.0µs         3.56µs              28.4µs              0.67µs      
+    //    144 clk        256 clk            1600 clk             48 clk
     //
     // [--------------------------- total -----------------------------------]
-    //                             26.40µs
-    //                             1056 clk
+    //                             28.44µs
+    //                             2048 clk
     //
     // Channel1: used to output HSYNC (when timer is less than 128 clk)
     // ‾‾‾‾‾‾‾‾‾‾‾\___________________________________________________________
     //
-    // Channel2: used to trigger (1*) (when timer is less than 128 + 88 = 216)
+    // Channel2: used to trigger (1*) (when timer exceeds 400clk)
     // ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾\_________________________________________
     //
     // each row will be run 628 times per frame.
     //
-    // clock cycles (clk) are calculated based on a 40GHz system clock:
-    // f(x) = 40GHz * (1s / 1,000,000µs) * (x)µs
-    // e.g f(3.2) = 40GHz * (1s / 1,000,000µs) * 3.2µs = 128 clk
+    // clock cycles (clk) are calculated based on a 72GHz system clock:
+    // f(x) = 72GHz * (1,000,000clk / 1GHz) * (1s / 1,000,000µs) * (x)µs
+    // e.g f(3.2) = 72GHz * 2µs = 144 clk
    
     const u32 HORIZONTAL_TOTAL_CLK = 2048;
     const u32 CHANNEL1_PULSE_CLK = 144;
@@ -180,7 +177,7 @@ void vga_init() {
     DMA1->CNDTR3 = DISPLAY_WIDTH_BYTES;
 
     // setup SPI1
-    // we will send pixel data at 40 / 2 = 10Mhz
+    // we will send pixel data at 72 / 2 = 36Mhz
     SPI1->CR1 = (
         SPI_CR1_SPE |
         SPI_CR1_MSTR |
